@@ -1,6 +1,6 @@
 # SDSS Fetch
 
-A modular Python package for downloading and organizing SDSS spectroscopic and image data efficiently. At least it will be so.
+A modular Python package for efficient bulk download and organization of SDSS spectroscopic and image data. At least it will be so.
 
 ## Features
 - Multi-threaded SDSS spectrum downloader (DR16-prioritized)
