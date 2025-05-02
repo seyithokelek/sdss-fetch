@@ -167,17 +167,6 @@ class CutoutFetcher:
             return ""
 
     def fetch_all(self, df: pd.DataFrame, ra_col: str = "ra", dec_col: str = "dec"):
-        """
-        Fetch cutouts for all coordinates in a DataFrame.
-        
-        Parameters:
-        - df: DataFrame with RA/DEC columns
-        - ra_col: Name of RA column
-        - dec_col: Name of DEC column
-        
-        Returns:
-        - List of successful file paths
-        """
         results = []
         for _, row in df.iterrows():
             if self.set_coordinates(row[ra_col], row[dec_col]):

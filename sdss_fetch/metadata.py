@@ -25,21 +25,11 @@ class MetadataExtractor:
 
     def __init__(self, cache_results: bool = True):
         self.cache_results = cache_results
-        self._cache = {}  # Simple in-memory cache
+        self._cache = {}
 
     def extract_metadata(self, file_list):
-        """
-        Extract basic metadata from a list of FITS files.
-        
-        Parameters:
-        - file_list: List of paths to FITS files
-        
-        Returns:
-        - DataFrame with metadata for each file
-        """
         records = []
         for f in file_list:
-            # Check cache first
             if self.cache_results and f in self._cache.get('metadata', {}):
                 records.append(self._cache['metadata'][f])
                 log_message(f"Using cached metadata for {f}")
@@ -71,7 +61,6 @@ class MetadataExtractor:
                     
                     records.append(record)
                     
-                    # Cache the result
                     if self.cache_results:
                         if 'metadata' not in self._cache:
                             self._cache['metadata'] = {}
@@ -85,16 +74,6 @@ class MetadataExtractor:
         return pd.DataFrame.from_records(records)
 
     def summarize_lines(self, filepath):
-        """
-        Extract emission line parameters from extension 3 of FITS.
-
-        Parameters:
-        - filepath (str): Path to a FITS file
-
-        Returns:
-        - DataFrame with line names, wavelengths, flux, sigma, and SNR
-        """
-        # Check cache first
         if self.cache_results and filepath in self._cache.get('lines', {}):
             log_message(f"Using cached line data for {filepath}")
             return self._cache['lines'][filepath]
@@ -111,7 +90,6 @@ class MetadataExtractor:
                     "snr": lines["LINEAREA"] / lines["LINEAREA_ERR"]
                 })
                 
-                # Cache the result
                 if self.cache_results:
                     if 'lines' not in self._cache:
                         self._cache['lines'] = {}
@@ -123,21 +101,6 @@ class MetadataExtractor:
             return pd.DataFrame()
 
     def plot_restframe(self, filepath, show_lines=True, xrange=None, yrange=None, grid=False, save_fig=False, fig_path=None):
-        """
-        Plot the rest-frame spectrum with emission lines.
-        
-        Parameters:
-        - filepath: Path to FITS file
-        - show_lines: Whether to show emission/absorption lines (default: True)
-        - xrange: X-axis range as tuple (min, max)
-        - yrange: Y-axis range as tuple (min, max)
-        - grid: Whether to show grid (default: False)
-        - save_fig: Whether to save the figure (default: False)
-        - fig_path: Path to save figure (default: None, will use filename with .png extension)
-        
-        Returns:
-        - Matplotlib figure object
-        """
         try:
             with fits.open(filepath) as hdul:
                 flux = hdul[1].data["FLUX"]
@@ -245,35 +208,18 @@ class MetadataExtractor:
             return None
             
     def save_metadata_to_csv(self, metadata_df, filename="metadata.csv"):
-        """
-        Save metadata DataFrame to CSV.
-        
-        Parameters:
-        - metadata_df: DataFrame with metadata
-        - filename: Output filename (default: "metadata.csv")
-        """
         try:
             safe_to_csv(metadata_df, filename)
         except Exception as e:
             handle_exception("save_metadata_to_csv", e)
             
     def save_lines_to_csv(self, lines_df, filename="emission_lines.csv"):
-        """
-        Save emission lines DataFrame to CSV.
-        
-        Parameters:
-        - lines_df: DataFrame with emission lines data
-        - filename: Output filename (default: "emission_lines.csv")
-        """
         try:
             safe_to_csv(lines_df, filename)
         except Exception as e:
             handle_exception("save_lines_to_csv", e)
             
     def clear_cache(self):
-        """
-        Clear the internal cache.
-        """
         cache_size = sum(len(cache) for cache in self._cache.values())
         self._cache = {}
         log_message(f"Cleared metadata cache ({cache_size} entries)")

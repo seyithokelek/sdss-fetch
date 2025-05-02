@@ -34,27 +34,9 @@ class SpectrumPreview:
         os.makedirs(self.output_dir, exist_ok=True)
 
     def _construct_url(self, specobjid: int) -> str:
-        """
-        Construct URL for spectrum preview image.
-        
-        Parameters:
-        - specobjid: SDSS spectroscopic object ID
-        
-        Returns:
-        - URL string
-        """
         return f"{self.config['skyserver_base']}/en/get/SpecById.ashx?id={int(specobjid)}"
 
     def _resolve_filepath(self, specobjid: int) -> str:
-        """
-        Generate a unique filename for the preview image.
-        
-        Parameters:
-        - specobjid: SDSS spectroscopic object ID
-        
-        Returns:
-        - Filepath string
-        """
         base_filename = f"spec-{int(specobjid)}.png"
         filepath = os.path.join(self.output_dir, base_filename)
         counter = 2
@@ -65,17 +47,6 @@ class SpectrumPreview:
         return filepath
 
     def fetch_single(self, specobjid: int, filename: str = None, display: bool = True) -> str:
-        """
-        Download and optionally display a spectrum preview for a single specobjid.
-        
-        Parameters:
-        - specobjid: SDSS spectroscopic object ID
-        - filename: Optional custom filename
-        - display: Whether to display the image (default: True)
-        
-        Returns:
-        - Path to saved image or empty string on failure
-        """
         url = self._construct_url(specobjid)
         for attempt in range(1, self.max_retries + 2):
             try:
@@ -109,17 +80,6 @@ class SpectrumPreview:
         return ""
 
     def fetch_all(self, df: pd.DataFrame, id_col: str = "specobjid", display: bool = False) -> list:
-        """
-        Fetch previews for all specobjids in a DataFrame.
-        
-        Parameters:
-        - df: DataFrame containing specobjids
-        - id_col: Name of column containing specobjids (default: "specobjid")
-        - display: Whether to display each image (default: False)
-        
-        Returns:
-        - List of paths to successfully saved images
-        """
         if id_col not in df.columns:
             log_message(f"Column '{id_col}' not found in DataFrame")
             return []
@@ -136,16 +96,6 @@ class SpectrumPreview:
         return results
 
     def fetch_from_resolved(self, resolved_df: pd.DataFrame, display: bool = False) -> list:
-        """
-        Accepts output of resolver.resolve_all and fetches previews for all.
-
-        Parameters:
-        - resolved_df (DataFrame): Must contain 'specobjid' column
-        - display: Whether to display each image (default: False)
-        
-        Returns:
-        - List of paths to successfully saved images
-        """
         if "specobjid" not in resolved_df.columns:
             log_message("No 'specobjid' column found in input DataFrame for preview generation.")
             return []

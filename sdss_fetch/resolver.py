@@ -28,24 +28,12 @@ class TargetResolver:
         self.data_release = data_release
         self.config = get_sdss_config(data_release)
         self.cache_results = cache_results
-        self._cache = {}  # Simple in-memory cache
+        self._cache = {}
 
     def resolve_target(self, ra: float, dec: float, select: int = 0) -> Optional[Dict]:
-        """
-        Resolve spectroscopic objects near the given coordinates.
-        
-        Parameters:
-        - ra: Right Ascension in degrees
-        - dec: Declination in degrees
-        - select: Index of the result to select if multiple matches (default: 0)
-        
-        Returns:
-        - Dictionary with target information or None if no match
-        """
         if not validate_coordinates(ra, dec):
             return None
             
-        # Check cache first
         cache_key = f"{ra:.6f}_{dec:.6f}"
         if self.cache_results and cache_key in self._cache:
             log_message(f"Using cached target for RA={ra}, DEC={dec}", print_console=False)
@@ -84,7 +72,6 @@ class TargetResolver:
             print(f"\n→ Selected row: {select}")
             print(chosen_row.squeeze().to_string())
             
-            # Cache the result
             if self.cache_results:
                 self._cache[cache_key] = chosen_dict.copy()
 
@@ -94,18 +81,6 @@ class TargetResolver:
             return None
 
     def resolve_all(self, df: pd.DataFrame, ra_col: str = "ra", dec_col: str = "dec", select: int = 0) -> pd.DataFrame:
-        """
-        Resolve all coordinates in a DataFrame.
-        
-        Parameters:
-        - df: DataFrame with RA/DEC columns
-        - ra_col: Name of RA column
-        - dec_col: Name of DEC column
-        - select: Index of the result to select if multiple matches
-        
-        Returns:
-        - DataFrame with resolved targets
-        """
         results = []
         for i, row in df.iterrows():
             ra = row[ra_col]
@@ -113,7 +88,6 @@ class TargetResolver:
             log_message(f"Resolving row {i}: RA={ra}, DEC={dec}...", print_console=False)
             result = self.resolve_target(ra, dec, select=select)
             if result:
-                # Add source index for reference
                 result['source_idx'] = i
                 results.append(result)
             else:
@@ -128,19 +102,6 @@ class TargetResolver:
             return pd.DataFrame()
 
     def resolve_by_pmfs(self, plate: int, mjd: int, fiberid: int, select: int = 0) -> Optional[Dict]:
-        """
-        Resolve target by plate-MJD-fiber ID.
-        
-        Parameters:
-        - plate: Plate ID
-        - mjd: MJD
-        - fiberid: Fiber ID
-        - select: Index of the result to select if multiple matches
-        
-        Returns:
-        - Dictionary with target information or None if no match
-        """
-        # Check cache first
         cache_key = f"pmf_{plate}_{mjd}_{fiberid}"
         if self.cache_results and cache_key in self._cache:
             log_message(f"Using cached target for plate={plate}, mjd={mjd}, fiberID={fiberid}", print_console=False)
@@ -160,7 +121,6 @@ class TargetResolver:
             log_message(f"Found RA={ra}, DEC={dec} for plate={plate}, mjd={mjd}, fiberID={fiberid}", print_console=False)
             target = self.resolve_target(ra, dec, select=select)
             
-            # Cache the result
             if target and self.cache_results:
                 self._cache[cache_key] = target.copy()
                 
@@ -170,9 +130,6 @@ class TargetResolver:
             return None
             
     def clear_cache(self):
-        """
-        Clear the internal cache.
-        """
         cache_size = len(self._cache)
         self._cache = {}
         log_message(f"Cleared resolver cache ({cache_size} entries)")
