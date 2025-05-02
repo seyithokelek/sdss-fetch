@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files
+*.fits
+*.csv
+*.png
+*.jpg
+*.jpeg
+/spectra/
+/cutouts/
+/previews/
+/fits_images/
+/downloaded_spectra/
+
+# Log files
+*.log
+failed_list.txt
+
+# Environment files
+.env
+.venv
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
