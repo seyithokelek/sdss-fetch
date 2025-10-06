@@ -97,44 +97,65 @@ class SDSSParallelDownloader:
         return False, ""
 
     def try_download(self, plate: int, mjd: int, fiber: int, index: int, verbose: bool) -> Tuple[str, bool]:
-        if verbose:
-            print(f"[{index+1}] Starting download...")
+            if verbose:
+                print(f"[{index+1}] Starting download...")
 
-        filename_base = f"spec-{plate:04d}-{mjd}-{fiber:04d}.fits"
-        filepath = os.path.join(self.output_dir, filename_base)
+            filename_base = f"spec-{plate:04d}-{mjd}-{fiber:05d}.fits"
+            filepath = os.path.join(self.output_dir, filename_base)
 
-        for dr in self.dr_list:
-            for run2d in self.run2d_multi.get(dr, []):
-                url = self.construct_sdss_org_url(dr, run2d, plate, mjd, fiber)
-                success, name = self.download_with_retry(url, filepath, verbose, index)
+            # Firstly: Fast and Safe (Priority DR16 Lite SAS Path)
+            plate_str = f"{plate:04d}"
+            mjd_str = str(mjd)
+            fiber_str = f"{fiber:04d}"
+            
+            priority_url = f"https://dr16.sdss.org/sas/dr16/eboss/spectro/redux/v5_13_0/spectra/lite/{plate_str}/spec-{plate_str}-{mjd_str}-{fiber_str}.fits"
+
+            success, name = self.download_with_retry(priority_url, filepath, verbose, index)
+            if success:
+                self.log_message(f"✓ {name} (Priority DR16 Lite SAS)")
+                return name, True
+            
+            if verbose:
+                print(f"[{index+1}] Priority DR16 Lite SAS failed. Trying fallback methods...")
+
+            # Fallback Method 1: sdss.org/sas path (using run2d_multi list)
+            for dr in self.dr_list:
+                for run2d in self.run2d_multi.get(dr, []):
+                    url = self.construct_sdss_org_url(dr, run2d, plate, mjd, fiber)
+                    success, name = self.download_with_retry(url, filepath, verbose, index)
+                    if success:
+                        self.log_message(f"✓ {name} ({dr} sdss.org run2d={run2d})")
+                        return name, True
+            
+            # Fallback Method 2: DR16 API
+            url = self.construct_api_url("dr16", plate, mjd, fiber)
+            success, name = self.download_with_retry(url, filepath, verbose, index)
+            if success:
+                self.log_message(f"✓ {name} (DR16 API)")
+                return name, True
+
+            # Fallback Method 3: General SAS Path (dr_config) + API
+            for dr in self.dr_list:
+                # SAS Path 
+                sas_url = self.construct_sas_url(dr, plate, mjd, fiber)
+                success, name = self.download_with_retry(sas_url, filepath, verbose, index)
                 if success:
-                    self.log_message(f"✓ {name} ({dr} sdss.org run2d={run2d})")
+                    self.log_message(f"✓ {name} ({dr} SAS)")
                     return name, True
 
-        url = self.construct_api_url("dr16", plate, mjd, fiber)
-        success, name = self.download_with_retry(url, filepath, verbose, index)
-        if success:
-            self.log_message(f"✓ {name} (DR16 API)")
-            return name, True
+                # API Path 
+                api_url = self.construct_api_url(dr, plate, mjd, fiber)
+                success, name = self.download_with_retry(api_url, filepath, verbose, index)
+                if success:
+                    self.log_message(f"✓ {name} ({dr} API)")
+                    return name, True
 
-        for dr in self.dr_list:
-            sas_url = self.construct_sas_url(dr, plate, mjd, fiber)
-            success, name = self.download_with_retry(sas_url, filepath, verbose, index)
-            if success:
-                self.log_message(f"✓ {name} ({dr} SAS)")
-                return name, True
-
-            api_url = self.construct_api_url(dr, plate, mjd, fiber)
-            success, name = self.download_with_retry(api_url, filepath, verbose, index)
-            if success:
-                self.log_message(f"✓ {name} ({dr} API)")
-                return name, True
-
-        self.log_message(f"× {filename_base}: All methods failed.")
-        self.log_failed(plate, mjd, fiber)
-        if verbose:
-            print(f"[{index+1}] × {filename_base}: All methods failed.")
-        return filename_base, False
+            # Final Failure
+            self.log_message(f"× {filename_base}: All methods failed.")
+            self.log_failed(plate, mjd, fiber)
+            if verbose:
+                print(f"[{index+1}] × {filename_base}: All methods failed.")
+            return filename_base, False
 
     def download_all(self, plates: List[int], mjds: List[int], fibers: List[int], verbose: bool = True):
         start = datetime.now()
