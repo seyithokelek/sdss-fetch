@@ -68,13 +68,15 @@ class SDSSParallelDownloader:
         return new_path
 
     def log_message(self, message: str, logfile: str = "downloader.log"):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(logfile, "a") as f:
-            f.write(f"[{timestamp}] {message}\n")
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # encoding="utf-8"
+            with open(logfile, "a", encoding="utf-8") as f:
+                f.write(f"[{timestamp}] {message}\n")
 
     def log_failed(self, plate: int, mjd: int, fiber: int, failfile: str = "failed_list.txt"):
         line = f"{plate}\t{mjd}\t{fiber}\n"
-        with open(failfile, "a") as f:
+        # encoding="utf-8"
+        with open(failfile, "a", encoding="utf-8") as f:
             f.write(line)
 
     def download_with_retry(self, url: str, filepath: str, verbose: bool, index: int) -> Tuple[bool, str]:

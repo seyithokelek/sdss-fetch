@@ -6,4 +6,5 @@ from .preview import SpectrumPreview
 from .resolver import TargetResolver
 from .metadata import MetadataExtractor
 from .photometry import PhotometryFetcher
+from .sdss_radio import SDSSRadioPlotter, sdss_radio, fetch_lotss_cutout
 from . import utils
