@@ -13,6 +13,7 @@ A modular Python package for efficient bulk download and organization of SDSS sp
 - Photometry data retrieval (ugriz magnitudes)
 - Caching mechanism for improved performance
 - Standardized error handling
+- SDSS optical + LoTSS DR2/DR3 radio contour plotter
 
 ## Installation
 
@@ -36,6 +37,7 @@ pip install -e .
 - **TargetResolver**: Resolve coordinates to SDSS spectroscopic objects
 - **MetadataExtractor**: Extract metadata and emission lines from FITS files
 - **PhotometryFetcher**: Query SDSS ugriz photometric magnitudes
+- **SDSSRadioPlotter**: Overlay LoTSS DR2/DR3 radio contours on SDSS optical cutouts
 
 ## Examples
 
@@ -43,6 +45,7 @@ Check the `examples/` directory for more detailed usage examples:
 - Bulk downloading spectra
 - Working with cutouts and previews
 - Extracting metadata from FITS files
+- Plotting SDSS optical cutouts with LoTSS radio contours
 - Resolving coordinates to SDSS objects
 - Querying photometry data
 
